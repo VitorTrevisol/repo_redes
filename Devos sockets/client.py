@@ -11,7 +11,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
 def handle_mensagens():
-    while(True):
+    while True:
         msg = client.recv(1024).decode()
         mensagem_splitada = msg.split("=")
         print(mensagem_splitada[1] + ": " + mensagem_splitada[2])
@@ -29,7 +29,8 @@ def enviar_nome():
 
 def iniciar_envio():
     enviar_nome()
-    enviar_mensagem()
+    while True:
+        enviar_mensagem()
 
 def iniciar():
     thread1 = threading.Thread(target=handle_mensagens)
@@ -38,4 +39,3 @@ def iniciar():
     thread2.start()
 
 iniciar()
-
