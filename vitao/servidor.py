@@ -3,9 +3,10 @@ import threading
 import time
 import sqlite3
 import random
+from funcoes import *
 
 SERVER_IP = "127.0.0.1"
-PORT = 1234
+PORT = 1235
 ADDR = (SERVER_IP, PORT)
 FORMATO = 'utf-8'
 
@@ -16,35 +17,8 @@ conexoes = []
 mensagens = []
 online = []
 
-def conectar_banco():
-    return sqlite3.connect('banco.db')
-def consultar_pessoa(nome_consulta, sobrenome_consulta):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    SELECT id FROM clientes 
-    WHERE nome = ? AND sobrenome = ?
-    ''', (nome_consulta, sobrenome_consulta))
-    resultado = cursor.fetchone()
-    print(resultado)
-    conexao.close()
-    if resultado:
-        return resultado[0]
-    return None
-def adicionar_pessoa(nome, sobrenome):
-    id_cliente = random.randint(10**12, 10**13 - 1)
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    
-    cursor.execute('''
-    INSERT INTO clientes (id, nome, sobrenome)
-    VALUES (?, ?, ?)
-    ''', (id_cliente, nome, sobrenome))
-    
-    conexao.commit()
-    conexao.close()
 
-    return id_cliente
+
 def conecta(conexao):
     mensagem_de_envio = mensagens[0]
     conexao['conn'].send(mensagem_de_envio.encode())
@@ -61,6 +35,7 @@ def enviar_mensagem_individual(conexao):
             online.append(mensagem_de_envio[2:])
         mensagens.remove(mensagens[i])
 
+
 def handle_clientes(conn, addr):
     print(f"[NOVA CONEXAO] Um novo usuario se conectou pelo endereço {addr}")
     global conexoes
@@ -71,7 +46,6 @@ def handle_clientes(conn, addr):
         "last": 0
     }
     conexoes.append(mapa_da_conexao)
-    
     while True:
         try:
             msg = conn.recv(1024).decode(FORMATO)
@@ -88,6 +62,8 @@ def handle_clientes(conn, addr):
                 msg = msg[4:]
                 nome, sobrenome = msg.split(' ')
                 registro(mapa_da_conexao, nome, sobrenome)
+            elif msg.startswith("inicio"):
+                espera = mensagemEspera()
         except ConnectionResetError:
             break
 
