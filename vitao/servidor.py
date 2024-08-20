@@ -53,8 +53,8 @@ def enviar_mensagem_individual(conexao):
     for i in range(conexao['last'], len(mensagens)):
         mensagem_de_envio = mensagens[i]
         conexao['conn'].send(mensagem_de_envio.encode())
-        conexao['last'] = i + 1
         time.sleep(0.2)
+        mensagens.remove(mensagens[i])
 
 def enviar_mensagem_todos():
     global conexoes
