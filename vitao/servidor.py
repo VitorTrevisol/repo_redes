@@ -15,15 +15,29 @@ server.bind(ADDR)
 conexoes = []
 mensagens = []
 
+def conectar_banco():
+    return sqlite3.connect('banco.db')
+
+def consultar_pessoa(nome_consulta, sobrenome_consulta):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    cursor.execute('''
+    SELECT id FROM clientes 
+    WHERE nome = ? AND sobrenome = ?
+    ''', (nome_consulta, sobrenome_consulta))
+
+    resultado = cursor.fetchone()
+    conexao.close()
+    if resultado:
+        return resultado[0]
+    return None
+
 def adicionar_pessoa(nome, sobrenome):
-    # Gerar um ID aleatório de 13 dígitos
     id_cliente = random.randint(10**12, 10**13 - 1)
     
-    # Conectar ao banco de dados
-    conexao = sqlite3.connect('banco.db')
+    conexao = conectar_banco()
     cursor = conexao.cursor()
     
-    # Inserir os dados na tabela clientes
     cursor.execute('''
     INSERT INTO clientes (id, nome, sobrenome)
     VALUES (?, ?, ?)
@@ -56,21 +70,31 @@ def handle_clientes(conn, addr):
         "addr": addr,
         "last": 0
     }
-
+    conexoes.append(mapa_da_conexao)
+    
     while True:
-        msg = conn.recv(1024).decode(FORMATO)
-        if msg:
+        try:
+            msg = conn.recv(1024).decode(FORMATO)
+            if not msg:
+                break
             if msg.startswith("conecta"):
-                id_cliente = msg[8:]
-                # Buscar o cliente no banco de dados usando o ID (não implementado no exemplo)
-                # Carregar informações necessárias
-            elif msg.startswith("registro"):
-                mensagens.append("registro")
+                nome_login = msg[7:]
+                nome, sobrenome = nome_login.split(' ')
+                id_cliente = consultar_pessoa(nome, sobrenome)
+                if id_cliente:
+                    mensagens.append(f'id{id_cliente}')
+                else:
+                    mensagens.append("pessoa não encontrada")
                 enviar_mensagem_individual(mapa_da_conexao)
             elif msg.startswith("nome"):
                 msg = msg[4:]
                 nome, sobrenome = msg.split(' ')
                 registro(mapa_da_conexao, nome, sobrenome)
+        except ConnectionResetError:
+            break
+
+    conexoes.remove(mapa_da_conexao)
+    conn.close()
 
 def registro(conexao, nome='', sobrenome=''):
     if nome == '':
@@ -78,7 +102,7 @@ def registro(conexao, nome='', sobrenome=''):
         enviar_mensagem_individual(conexao)
     else:
         id_cliente = str(adicionar_pessoa(nome, sobrenome))
-        mensagens.append(id_cliente)
+        mensagens.append(f'id{id_cliente}')
         enviar_mensagem_individual(conexao)
 
 def start():
