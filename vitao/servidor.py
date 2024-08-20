@@ -5,7 +5,7 @@ import sqlite3
 import random
 
 SERVER_IP = "127.0.0.1"
-PORT = 1235
+PORT = 1234
 ADDR = (SERVER_IP, PORT)
 FORMATO = 'utf-8'
 
@@ -14,10 +14,10 @@ server.bind(ADDR)
 
 conexoes = []
 mensagens = []
+online = []
 
 def conectar_banco():
     return sqlite3.connect('banco.db')
-
 def consultar_pessoa(nome_consulta, sobrenome_consulta):
     conexao = conectar_banco()
     cursor = conexao.cursor()
@@ -25,16 +25,14 @@ def consultar_pessoa(nome_consulta, sobrenome_consulta):
     SELECT id FROM clientes 
     WHERE nome = ? AND sobrenome = ?
     ''', (nome_consulta, sobrenome_consulta))
-
     resultado = cursor.fetchone()
+    print(resultado)
     conexao.close()
     if resultado:
         return resultado[0]
     return None
-
 def adicionar_pessoa(nome, sobrenome):
     id_cliente = random.randint(10**12, 10**13 - 1)
-    
     conexao = conectar_banco()
     cursor = conexao.cursor()
     
@@ -47,19 +45,21 @@ def adicionar_pessoa(nome, sobrenome):
     conexao.close()
 
     return id_cliente
+def conecta(conexao):
+    mensagem_de_envio = mensagens[0]
+    conexao['conn'].send(mensagem_de_envio.encode())
+    time.sleep(0.2)
+    online.append(mensagem_de_envio[2:])
+    mensagens.remove(mensagens[0])
 
 def enviar_mensagem_individual(conexao):
-    print(f"[ENVIANDO] Enviando mensagens para {conexao['addr']}")
-    for i in range(conexao['last'], len(mensagens)):
+    for i in range(0, len(mensagens)):
         mensagem_de_envio = mensagens[i]
         conexao['conn'].send(mensagem_de_envio.encode())
         time.sleep(0.2)
+        if mensagem_de_envio.startswith('id'):
+            online.append(mensagem_de_envio[2:])
         mensagens.remove(mensagens[i])
-
-def enviar_mensagem_todos():
-    global conexoes
-    for conexao in conexoes:
-        enviar_mensagem_individual(conexao)
 
 def handle_clientes(conn, addr):
     print(f"[NOVA CONEXAO] Um novo usuario se conectou pelo endereço {addr}")
@@ -83,9 +83,7 @@ def handle_clientes(conn, addr):
                 id_cliente = consultar_pessoa(nome, sobrenome)
                 if id_cliente:
                     mensagens.append(f'id{id_cliente}')
-                else:
-                    mensagens.append("pessoa não encontrada")
-                enviar_mensagem_individual(mapa_da_conexao)
+                conecta(mapa_da_conexao)
             elif msg.startswith("nome"):
                 msg = msg[4:]
                 nome, sobrenome = msg.split(' ')
@@ -97,13 +95,14 @@ def handle_clientes(conn, addr):
     conn.close()
 
 def registro(conexao, nome='', sobrenome=''):
+    global online
     if nome == '':
         mensagens.append('registro')
         enviar_mensagem_individual(conexao)
     else:
         id_cliente = str(adicionar_pessoa(nome, sobrenome))
         mensagens.append(f'id{id_cliente}')
-        enviar_mensagem_individual(conexao)
+        conecta(conexao)
 
 def start():
     print("[INICIANDO] Iniciando Socket")

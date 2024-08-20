@@ -11,6 +11,7 @@ client.connect(ADDR)
 
 def recebe_mensagens():
     thread2 = threading.Thread(target=enviar_mensagem)
+    volta = True
     anterior = ''
     while True:
         try:
@@ -18,9 +19,10 @@ def recebe_mensagens():
             if msg.startswith("registro") and msg != anterior:
                 mensagem = input('Digite seu nome e sobrenome: ')
                 enviar("nome " + mensagem)
-            elif msg.startswith('id') and msg != anterior:
-                print(f"ID recebido: {msg}")
-                anterior = msg
+            elif msg.startswith('id') and volta:
+                id = msg[2:]
+                print(f"ID recebido: {id}")
+                volta = False
                 thread2.start()
             elif msg != anterior:
                 print(f"Mensagem recebida: {msg}")
@@ -36,6 +38,12 @@ def enviar_mensagem():
     while True:
         mensagem = input("Digite a mensagem para enviar: ")
         enviar("msg" + mensagem)
+    # menu inicial
+
+    # para quem deseja enviar mensagem?
+
+    # envie mensagem
+        
 
 def enviar_nome():
     registro = input('Deseja se registrar? (s/n): ')
