@@ -42,17 +42,17 @@ def enviar_mensagem():
             enviar('inicia')
             inicio = False
         mensagem = input("o que deseja?")
-        if mensagem == '1':
+        if mensagem == '01idmanda':
             # consultar contatos
-            enviar('1')
+            enviar('01')
         elif mensagem == '2':
-            # enviar mensagens
+            # enviar mensagens 05
             a = 0
         elif mensagem == '3':
-            # adicionar contato
+            # adicionar contato 10
             a = 0
         elif mensagem == '4':
-            # ler mensagens
+            # ler mensagens 03
             a = 0
         # para quem deseja enviar mensagem?
 
@@ -63,12 +63,12 @@ def enviar_nome():
     registro = input('Deseja se registrar? (s/n): ')
     if registro.lower() == 's':
         mensagem = input('Digite seu nome e sobrenome: ')
-        enviar("nome" + mensagem)
+        enviar("01" + mensagem)
     else:
         ja_esteve = input('Você já esteve aqui antes? (s/n): ')
         if ja_esteve.lower() == 's':
             nome = input("Digite seu Nome e Sobrenome: ")
-            enviar("conecta" + nome)
+            enviar("02" + nome)
         else:
             print('Espero poder te atender em outro momento.')
             client.close()

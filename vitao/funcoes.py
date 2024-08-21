@@ -125,12 +125,3 @@ def consultar_nome(id):
     conexao.close()
     return resultado
 
-nome_amigo = []
-mensagens = []
-historico = mensagensAntigas(6029031406076)
-for x in historico:
-    amigo = consultar_nome(x[1])
-    amigo = amigo[0][0]
-    nome_amigo.append(amigo)
-    mensagens.append(x[2])
-print(nome_amigo, mensagens)
