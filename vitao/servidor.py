@@ -36,6 +36,7 @@ def enviar_mensagem_individual(conexao, nome_amigo):
             time.sleep(0.2)
             if mensagem_de_envio.startswith('id'):
                 online.append(mensagem_de_envio[2:])
+            
         
         # Use uma cópia da lista ao remover itens
         mensagens[:] = [msg for i, msg in enumerate(mensagens) if i >= len(nome_amigo)]
@@ -101,7 +102,7 @@ def registro(conexao, nome='', sobrenome=''):
         enviar_mensagem_individual(conexao, [])
     else:
         id_cliente = str(adicionar_pessoa(nome, sobrenome))
-        mensagens.append(f'id{id_cliente}')
+        mensagens.append(f'02{id_cliente}')
         conecta(conexao)
 
 def start():
