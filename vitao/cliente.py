@@ -41,18 +41,15 @@ def enviar_mensagem():
         if inicio:
             enviar('inicia')
             inicio = False
-        mensagem = input("o que deseja?")
+        mensagem = input("[1] Enviar mensagens \n[2] Adicionar Contato \n[3] Criar Grupo \nO que deseja?")
         if mensagem == '1':
-            # consultar contatos
-            enviar('1')
-        elif mensagem == '2':
             # enviar mensagens
             a = 0
-        elif mensagem == '3':
-            # adicionar contato
-            a = 0
-        elif mensagem == '4':
+        elif mensagem == '2':
             # ler mensagens
+            a = 0
+        elif mensagem == '3':
+            #criar grupo
             a = 0
         # para quem deseja enviar mensagem?
 
