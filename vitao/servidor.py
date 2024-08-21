@@ -16,36 +16,43 @@ server.bind(ADDR)
 conexoes = []
 mensagens = []
 online = []
-
-
+lock = threading.Lock()
 
 def conecta(conexao):
-    mensagem_de_envio = mensagens[0]
-    conexao['conn'].send(mensagem_de_envio.encode())
-    time.sleep(0.2)
-    online.append(mensagem_de_envio[2:])
-    mensagens.remove(mensagens[0])
-
-def enviar_mensagem_individual(conexao):
-    for i in range(0, len(mensagens)):
-        mensagem_de_envio = mensagens[i]
-        conexao['conn'].send(mensagem_de_envio.encode())
-        time.sleep(0.2)
-        if mensagem_de_envio.startswith('id'):
+    with lock:
+        if mensagens:
+            mensagem_de_envio = mensagens.pop(0)
+            conexao['conn'].send(mensagem_de_envio.encode())
+            time.sleep(0.2)
             online.append(mensagem_de_envio[2:])
-        mensagens.remove(mensagens[i])
 
+def enviar_mensagem_individual(conexao, nome_amigo):
+    with lock:
+        for i in range(len(mensagens)):
+            mensagem_de_envio = mensagens[i]
+            if nome_amigo:
+                mensagem_de_envio = f'{nome_amigo[i]} historico {mensagens[i]}'
+            conexao['conn'].send(mensagem_de_envio.encode())
+            time.sleep(0.2)
+            if mensagem_de_envio.startswith('id'):
+                online.append(mensagem_de_envio[2:])
+        
+        # Use uma cópia da lista ao remover itens
+        mensagens[:] = [msg for i, msg in enumerate(mensagens) if i >= len(nome_amigo)]
 
 def handle_clientes(conn, addr):
-    print(f"[NOVA CONEXAO] Um novo usuario se conectou pelo endereço {addr}")
-    global conexoes
-    global mensagens
+    print(f"[NOVA CONEXÃO] Um novo usuário se conectou pelo endereço {addr}")
+    global conexoes, mensagens, online
     mapa_da_conexao = {
         "conn": conn,
         "addr": addr,
         "last": 0
     }
-    conexoes.append(mapa_da_conexao)
+    with lock:
+        conexoes.append(mapa_da_conexao)
+    
+    id_cliente = None
+
     while True:
         try:
             msg = conn.recv(1024).decode(FORMATO)
@@ -62,19 +69,36 @@ def handle_clientes(conn, addr):
                 msg = msg[4:]
                 nome, sobrenome = msg.split(' ')
                 registro(mapa_da_conexao, nome, sobrenome)
-            elif msg.startswith("inicio"):
-                espera = mensagemEspera()
+            elif msg.startswith("1") and id_cliente:
+                nome_amigo = []
+                historico = mensagensAntigas(int(id_cliente[0]))
+                for x in historico:
+                    amigo = consultar_nome(x[1])
+                    if amigo:
+                        nome_amigo.append(amigo[0][0])
+                        mensagens.append(x[2])
+                enviar_mensagem_individual(mapa_da_conexao, nome_amigo)
+                print(nome_amigo)
+                print(online)
+            elif msg.startswith("2"):
+                print(online)
+            elif msg.startswith("3"):
+                print(online)
+            elif msg.startswith("4"):
+                print(online)
+
         except ConnectionResetError:
             break
 
-    conexoes.remove(mapa_da_conexao)
+    with lock:
+        conexoes.remove(mapa_da_conexao)
     conn.close()
 
 def registro(conexao, nome='', sobrenome=''):
-    global online
+    global id_cliente
     if nome == '':
         mensagens.append('registro')
-        enviar_mensagem_individual(conexao)
+        enviar_mensagem_individual(conexao, [])
     else:
         id_cliente = str(adicionar_pessoa(nome, sobrenome))
         mensagens.append(f'id{id_cliente}')

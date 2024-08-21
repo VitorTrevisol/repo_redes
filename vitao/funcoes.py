@@ -1,120 +1,136 @@
 import sqlite3
+import random
 
 def conectar_banco():
     return sqlite3.connect('banco.db')
 
-def adicionar_cliente(id, nome, sobrenome, grupos):
+def consultar_pessoa(nome_consulta, sobrenome_consulta):
     conexao = conectar_banco()
     cursor = conexao.cursor()
     cursor.execute('''
-    INSERT INTO clientes (id, nome, sobrenome, grupos)
-    VALUES (?, ?, ?, ?)
-    ''', (id, nome, sobrenome, grupos))
-    conexao.commit()
+    SELECT id FROM clientes 
+    WHERE nome = ? AND sobrenome = ?
+    ''', (nome_consulta, sobrenome_consulta))
+    resultado = cursor.fetchall()
+    print(resultado)
     conexao.close()
+    if resultado:
+        return resultado[0]
+    return None
 
-def remover_cliente(id):
+def adicionar_pessoa(nome, sobrenome):
+    id_cliente = random.randint(10**12, 10**13 - 1)
     conexao = conectar_banco()
     cursor = conexao.cursor()
+    
     cursor.execute('''
-    DELETE FROM clientes WHERE id = ?
-    ''', (id,))
-    conexao.commit()
-    conexao.close()
-
-def consultar_cliente(id):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    SELECT * FROM clientes WHERE id = ?
-    ''', (id,))
-    resultado = cursor.fetchone()
-    conexao.close()
-    return resultado
-
-def adicionar_conexao(id, idUm, idDois, mensagens):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    INSERT INTO conexoes (id, idUm, idDois, mensagens)
-    VALUES (?, ?, ?, ?)
-    ''', (id, idUm, idDois, mensagens))
-    conexao.commit()
-    conexao.close()
-
-def remover_conexao(id):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    DELETE FROM conexoes WHERE id = ?
-    ''', (id,))
-    conexao.commit()
-    conexao.close()
-
-def consultar_conexao(id):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    SELECT * FROM conexoes WHERE id = ?
-    ''', (id,))
-    resultado = cursor.fetchone()
-    conexao.close()
-    return resultado
-
-def adicionar_grupo(id, nome, mensagens):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    INSERT INTO grupos (id, nome, mensagens)
+    INSERT INTO clientes (id, nome, sobrenome)
     VALUES (?, ?, ?)
-    ''', (id, nome, mensagens))
+    ''', (id_cliente, nome, sobrenome))
+    
     conexao.commit()
     conexao.close()
 
-def remover_grupo(id):
+    return id_cliente
+
+def mensagemEspera(id):
     conexao = conectar_banco()
     cursor = conexao.cursor()
     cursor.execute('''
-    DELETE FROM grupos WHERE id = ?
+    SELECT * FROM mensagemEspera
+    WHERE destinatario = ? 
     ''', (id,))
-    conexao.commit()
-    conexao.close()
-
-def consultar_grupo(id):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    SELECT * FROM grupos WHERE id = ?
-    ''', (id,))
-    resultado = cursor.fetchone()
-    conexao.close()
-    return resultado
-
-def adicionar_mensagem_espera(destinatario, remetente, mensagens):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    INSERT INTO mensagemEspera (destinatario, remetente, mensagens)
-    VALUES (?, ?, ?)
-    ''', (destinatario, remetente, mensagens))
-    conexao.commit()
-    conexao.close()
-
-def remover_mensagem_espera(destinatario, remetente):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    DELETE FROM mensagemEspera WHERE destinatario = ? AND remetente = ?
-    ''', (destinatario, remetente))
-    conexao.commit()
-    conexao.close()
-
-def consultar_mensagem_espera(destinatario):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    SELECT * FROM mensagemEspera WHERE destinatario = ?
-    ''', (destinatario,))
     resultado = cursor.fetchall()
     conexao.close()
     return resultado
+
+def mensagensAntigas(id):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    print(id)
+    cursor.execute('''
+    SELECT idUm, idDois, mensagens FROM conexoes
+    WHERE idUm = ? 
+    ''', (id,))
+    resultado = cursor.fetchall()
+    conexao.close()
+    mostra = []
+    for x in enumerate(resultado):
+        x_lista = list(x[1])
+        x_lista[2] = x_lista[2].strip('[]').split(',')
+        mostra.append(x_lista)
+        return resultado
+
+def grupos(id):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    cursor.execute('''
+    SELECT * FROM clientes
+    WHERE id = ? 
+    ''', (id,))
+    idGrupos = cursor.fetchall()
+    idGrupos = idGrupos[3].strip('[]').split(', ')
+    listaGrupos = []
+    for x in idGrupos:
+        cursor.execute('''
+        SELECT * FROM grupos
+        WHERE id = ? 
+        ''', (int(x),))
+        resultado = cursor.fetchall()
+        listaGrupos.append(resultado)
+    conexao.close()
+    return resultado
+
+def atualizar_clienteGrupos(id_cliente, id_grupo):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+
+    cursor.execute('''
+    SELECT grupos FROM clientes
+    WHERE id = ? 
+    ''', (id_cliente,))
+    grupos = cursor.fetchall()
+    print(grupos)
+    if grupos[0] == None:
+        grupos = []
+        grupos.append(id_grupo)
+        grupos = str(grupos)
+        cursor.execute('''
+        UPDATE clientes
+        SET grupos = ?
+        WHERE id = ?
+        ''', (grupos, id_cliente))
+    else:
+        grupos = list(grupos[0].strip('[]').split(', '))
+        for x, y in enumerate(grupos):
+            grupos[x] = int(y)
+        grupos.append((id_grupo))
+        grupos = str(grupos)
+        cursor.execute('''
+        UPDATE clientes
+        SET grupos = ?
+        WHERE id = ?
+        ''', (grupos, id_cliente))
+    conexao.commit()
+    conexao.close()
+
+def consultar_nome(id):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    cursor.execute('''
+    SELECT nome FROM clientes
+    WHERE id = ? 
+    ''', (id,))
+    resultado = cursor.fetchall()
+    conexao.close()
+    return resultado
+
+nome_amigo = []
+mensagens = []
+historico = mensagensAntigas(6029031406076)
+for x in historico:
+    amigo = consultar_nome(x[1])
+    amigo = amigo[0][0]
+    nome_amigo.append(amigo)
+    mensagens.append(x[2])
+print(nome_amigo, mensagens)

@@ -13,6 +13,7 @@ def recebe_mensagens():
     thread2 = threading.Thread(target=enviar_mensagem)
     volta = True
     anterior = ''
+    global id
     while True:
         try:
             msg = client.recv(1024).decode(FORMATO)
@@ -35,14 +36,27 @@ def enviar(mensagem):
     client.send(mensagem.encode(FORMATO))
 
 def enviar_mensagem():
+    inicio = True
     while True:
-        mensagem = input("Digite a mensagem para enviar: ")
-        enviar("msg" + mensagem)
-    # menu inicial
+        if inicio:
+            enviar('inicia')
+            inicio = False
+        mensagem = input("o que deseja?")
+        if mensagem == '1':
+            # consultar contatos
+            enviar('1')
+        elif mensagem == '2':
+            # enviar mensagens
+            a = 0
+        elif mensagem == '3':
+            # adicionar contato
+            a = 0
+        elif mensagem == '4':
+            # ler mensagens
+            a = 0
+        # para quem deseja enviar mensagem?
 
-    # para quem deseja enviar mensagem?
-
-    # envie mensagem
+        # envie mensagem
         
 
 def enviar_nome():
