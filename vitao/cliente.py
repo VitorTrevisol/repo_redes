@@ -5,7 +5,7 @@ from funcoes import *
 import time
 
 data = int(time.time())
-PORT = 1234
+PORT = 1235
 FORMATO = 'utf-8'
 SERVER = "127.0.0.1"
 ADDR = (SERVER, PORT)
@@ -30,8 +30,8 @@ def recebe_mensagens():
                 volta = False
                 thread2.start()
             elif msg.startswith('recebeu'):
-                id = msg[20:33]
-                print(f"usuario {consultar_nome(int(id))[0][0]} recebeu")
+                id2 = msg[20:33]
+                print(f"usuario {consultar_nome(int(id2))[0][0]} recebeu")
             elif msg.startswith('05'):
                 nome = consultar_nome(int(msg[2:15]))
                 print(f'\n {nome[0][0]}: {msg[38:]}')
@@ -83,10 +83,6 @@ def enviar_mensagem():
             enviar(f'12{id}')
             # enviar mensagens 05
             time.sleep(0.2)
-        elif mensagem == '3':
-            enviar(f'04{id}')
-            # adicionar contato 10
-            a = 0
         elif mensagem == '4':
             enviar(f'05{id}')
             # ler mensagens 03

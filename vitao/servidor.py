@@ -4,7 +4,7 @@ import time
 from funcoes import *
 
 SERVER_IP = "127.0.0.1"
-PORT = 1234
+PORT = 1235
 ADDR = (SERVER_IP, PORT)
 FORMATO = 'utf-8'
 
@@ -141,5 +141,5 @@ def notificar_grupo(id_grupo, timestamp, membros):
                 if str(y) == membro:
                     enviar_mensagem_individual(conexoes[x], mensagem_notificacao)
                     break
-                
+
 start()
