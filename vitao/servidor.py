@@ -90,6 +90,7 @@ def handle_clientes(conn, addr):
                     if id1 == str(y):
                         for mensagem in resultado:
                             enviar_mensagem_individual(conexoes[x], mensagem)
+                            
             elif msg.startswith("4"):
                 print(online)
 

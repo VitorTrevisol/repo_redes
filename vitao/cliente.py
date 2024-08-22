@@ -2,7 +2,6 @@ import socket
 import threading
 import time
 from funcoes import *
-import time
 
 data = int(time.time())
 PORT = 1235
@@ -38,7 +37,7 @@ def recebe_mensagens():
                 enviar(f'recebeu{msg[2:]}')
             elif msg.startswith('12'):
                 nome = consultar_nome(int(msg[15:28]))
-                print(f'\n {nome[0][0]}: {msg[38:]}')
+                print(f'\n {nome[0][0]}: {msg[38:]}\n')
 
             elif msg != anterior:
                 print(f"Mensagem recebida: {msg}")
@@ -65,7 +64,6 @@ def enviar_mensagem():
         if mensagem == '1':
             print('Contatos antigos')
             antigas = mensagensAntigas(id)
-            print(antigas)
             for x in antigas:
                 nome = consultar_nome(x[0])[0][0]
                 print(f'----{nome}----')
@@ -89,7 +87,6 @@ def enviar_mensagem():
             a = 0
         # para quem deseja enviar mensagem?
         elif mensagem == '3':
-            print('a')
             membros = []
             for i in range(7):
                 membro = input(f'ID do membro {i+1} (ou deixe vazio para terminar): ')
