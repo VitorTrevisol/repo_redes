@@ -62,27 +62,23 @@ def handle_clientes(conn, addr):
                 id_cliente = consultar_pessoa(nome)
                 online.append(id_cliente)
                 id_cliente = 'id' + str(id_cliente)
+                print(id_cliente)
                 if id_cliente:
                     mapa_da_conexao['conn'].send(id_cliente.encode())
             elif msg.startswith("01"):
                 nome, sobrenome = msg.split(' ')
                 registro(mapa_da_conexao, nome, sobrenome)
-            elif msg.startswith("recebeu"):
-                id1 = msg[7:20]
-                for x, y in enumerate(online):
-                    if id1 == str(y):
-                        enviar_mensagem_individual(conexoes[x], msg)
             elif msg.startswith("05") and id_cliente:
                 id2 = msg[15:28]
                 if int(id2) in online:
                     for x, y in enumerate(online):
                         if str(y) == id2:
                             enviar_mensagem_individual(conexoes[x], msg)
-                            print('foi')
                             break
                 else:
                     adicionar_pendentes(msg)
-                    print('salvo')
+            elif msg.startswith("10"):
+                criar_grupo(msg)  # Adiciona a chamada para criar o grupo
             elif msg.startswith("12"):
                 id1 = msg[2:15]
                 resultado = consultar_pendentes(int(id1))
@@ -141,5 +137,43 @@ def notificar_grupo(id_grupo, timestamp, membros):
                 if str(y) == membro:
                     enviar_mensagem_individual(conexoes[x], mensagem_notificacao)
                     break
+
+
+
+def atualizar_clienteGrupos(id_cliente, id_grupo):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+
+    # Recupera os grupos existentes do cliente
+    cursor.execute('''
+    SELECT grupos FROM clientes
+    WHERE id = ? 
+    ''', (id_cliente,))
+    resultado = cursor.fetchone()
+    
+    if resultado:
+        grupos = resultado[0]
+        if grupos:
+            grupos = grupos.strip('[]').split(', ')
+        else:
+            grupos = []
+        grupos.append(str(id_grupo))
+        grupos = str(grupos)
+        
+        cursor.execute('''
+        UPDATE clientes
+        SET grupos = ?
+        WHERE id = ?
+        ''', (grupos, id_cliente))
+    else:
+        # Se o cliente não tem nenhum grupo, cria uma nova entrada
+        cursor.execute('''
+        UPDATE clientes
+        SET grupos = ?
+        WHERE id = ?
+        ''', (str([id_grupo]), id_cliente))
+
+    conexao.commit()
+    conexao.close()
 
 start()

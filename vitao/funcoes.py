@@ -84,32 +84,43 @@ def atualizar_clienteGrupos(id_cliente, id_grupo):
     conexao = conectar_banco()
     cursor = conexao.cursor()
 
+    # Recupera os grupos existentes do cliente
     cursor.execute('''
     SELECT grupos FROM clientes
     WHERE id = ? 
     ''', (id_cliente,))
-    grupos = cursor.fetchall()
-    print(grupos)
-    if grupos[0] == None:
-        grupos = []
-        grupos.append(id_grupo)
-        grupos = str(grupos)
-        cursor.execute('''
-        UPDATE clientes
-        SET grupos = ?
-        WHERE id = ?
-        ''', (grupos, id_cliente))
+    resultado = cursor.fetchone()
+
+    if resultado and resultado[0]:
+        grupos = resultado[0].strip('[]').split(', ')
     else:
-        grupos = list(grupos[0].strip('[]').split(', '))
-        for x, y in enumerate(grupos):
-            grupos[x] = int(y)
-        grupos.append((id_grupo))
-        grupos = str(grupos)
-        cursor.execute('''
-        UPDATE clientes
-        SET grupos = ?
-        WHERE id = ?
-        ''', (grupos, id_cliente))
+        grupos = []
+
+    # Adiciona o novo grupo à lista de grupos do cliente
+    grupos.append(str(id_grupo))
+    grupos_str = '[' + ', '.join(grupos) + ']'
+
+    # Atualiza o banco de dados com a nova lista de grupos
+    cursor.execute('''
+    UPDATE clientes
+    SET grupos = ?
+    WHERE id = ?
+    ''', (grupos_str, id_cliente))
+
+    conexao.commit()
+    conexao.close()
+
+
+def adicionar_pendentes(mensagem):
+    id_destinatario = mensagem[2:15]
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    
+    cursor.execute('''
+    INSERT INTO mensagemEspera (destinatario, mensagens)
+    VALUES (?, ?)
+    ''', (id_destinatario, mensagem))
+    
     conexao.commit()
     conexao.close()
 
@@ -124,23 +135,6 @@ def consultar_nome(id):
     conexao.close()
     return resultado
 
-def adicionar_pendentes(mensagem):
-    id1 = mensagem[2:15]
-    id2 = mensagem[15:28]
-    mensagem = mensagem[28:]
-
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    
-    cursor.execute('''
-    INSERT INTO mensagemEspera (destinatario, remetente, mensagens)
-    VALUES (?, ?, ?)
-    ''', (id2, id1, mensagem))
-    
-    conexao.commit()
-    conexao.close()
-
-    return True
 
 def consultar_pendentes(id):
     conexao = conectar_banco()
@@ -172,5 +166,6 @@ def ver_grupos(id_cliente):
         return grupos
     else:
         return []
+
 
 

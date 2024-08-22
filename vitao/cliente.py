@@ -2,7 +2,6 @@ import socket
 import threading
 import time
 from funcoes import *
-import time
 
 data = int(time.time())
 PORT = 1235
@@ -21,21 +20,28 @@ def recebe_mensagens():
     while True:
         try:
             msg = client.recv(1024).decode(FORMATO)
+            if not msg:
+                break
+
             if msg.startswith("registro") and msg != anterior:
                 mensagem = input('Digite seu nome e sobrenome: ')
                 enviar("nome" + mensagem)
+
             elif msg.startswith('id') and volta:
                 id = msg[2:]
                 print(f"ID recebido: {id}")
                 volta = False
                 thread2.start()
+
             elif msg.startswith('recebeu'):
                 id2 = msg[20:33]
-                print(f"usuario {consultar_nome(int(id2))[0][0]} recebeu")
+                print(f"Usuário {consultar_nome(int(id2))[0][0]} recebeu")
+
             elif msg.startswith('05'):
                 nome = consultar_nome(int(msg[2:15]))
                 print(f'\n {nome[0][0]}: {msg[38:]}')
                 enviar(f'recebeu{msg[2:]}')
+
             elif msg.startswith('12'):
                 nome = consultar_nome(int(msg[15:28]))
                 print(f'\n {nome[0][0]}: {msg[38:]}')
@@ -46,9 +52,15 @@ def recebe_mensagens():
         except ConnectionResetError:
             print("Conexão com o servidor foi fechada.")
             break
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+            break
 
 def enviar(mensagem):
-    client.send(mensagem.encode(FORMATO))
+    try:
+        client.send(mensagem.encode(FORMATO))
+    except Exception as e:
+        print(f"Erro ao enviar mensagem: {e}")
 
 def enviar_mensagem():
     inicio = True
@@ -61,11 +73,11 @@ def enviar_mensagem():
             print('4 - Ver Grupos')
             time.sleep(0.3)
             inicio = False
-        mensagem = input("o que deseja?")
+        
+        mensagem = input("O que deseja? ")
         if mensagem == '1':
             print('Contatos antigos')
             antigas = mensagensAntigas(id)
-            print(antigas)
             for x in antigas:
                 nome = consultar_nome(x[0])[0][0]
                 print(f'----{nome}----')
@@ -79,23 +91,21 @@ def enviar_mensagem():
             else:
                 enviar(f'05{id}{envia}{data}{oque}')
             time.sleep(0.2)
+
         elif mensagem == '2':
             enviar(f'12{id}')
-            # enviar mensagens 05
             time.sleep(0.2)
+
         elif mensagem == '3':
-            print('a')
             membros = []
             for i in range(7):
                 membro = input(f'ID do membro {i+1} (ou deixe vazio para terminar): ')
                 if membro:
-                    membros.append(membro.zfill(13))  # Preenche com zeros à esquerda se necessário
+                    membros.append(membro.zfill(13))
                 else:
                     break
             enviar(f'10{id}{data}{"".join(membros)}')
-        # envie mensagem
-        #  
-        # Ver Grupos
+
         elif mensagem == '4':
             grupos = ver_grupos(id)
             if grupos:
@@ -104,7 +114,6 @@ def enviar_mensagem():
                     print(f'Grupo ID: {grupo}')
             else:
                 print('Você não está em nenhum grupo.')
-
 
 def enviar_nome():
     registro = input('Deseja se registrar? (s/n): ')
