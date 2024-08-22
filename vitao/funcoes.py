@@ -1,21 +1,21 @@
 import sqlite3
 import random
+from datetime import datetime
 
 def conectar_banco():
     return sqlite3.connect('banco.db')
 
-def consultar_pessoa(nome_consulta, sobrenome_consulta):
+def consultar_pessoa(nome_consulta):
     conexao = conectar_banco()
     cursor = conexao.cursor()
     cursor.execute('''
     SELECT id FROM clientes 
-    WHERE nome = ? AND sobrenome = ?
-    ''', (nome_consulta, sobrenome_consulta))
+    WHERE nome = ?
+    ''', (nome_consulta,))
     resultado = cursor.fetchall()
-    print(resultado)
     conexao.close()
     if resultado:
-        return resultado[0]
+        return resultado[0][0]
     return None
 
 def adicionar_pessoa(nome, sobrenome):
@@ -49,7 +49,7 @@ def mensagensAntigas(id):
     cursor = conexao.cursor()
     print(id)
     cursor.execute('''
-    SELECT idUm, idDois, mensagens FROM conexoes
+    SELECT idDois, mensagens FROM conexoes
     WHERE idUm = ? 
     ''', (id,))
     resultado = cursor.fetchall()
@@ -57,10 +57,9 @@ def mensagensAntigas(id):
     mostra = []
     for x in enumerate(resultado):
         x_lista = list(x[1])
-        x_lista[2] = x_lista[2].strip('[]').split(',')
+        x_lista[1] = x_lista[1].strip('[]').split(',')
         mostra.append(x_lista)
-        return resultado
-
+    return mostra
 def grupos(id):
     conexao = conectar_banco()
     cursor = conexao.cursor()
@@ -122,6 +121,36 @@ def consultar_nome(id):
     WHERE id = ? 
     ''', (id,))
     resultado = cursor.fetchall()
+    conexao.close()
+    return resultado
+
+def adicionar_pendentes(mensagem):
+    id1 = mensagem[2:15]
+    id2 = mensagem[15:28]
+    mensagem = mensagem[28:]
+
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    
+    cursor.execute('''
+    INSERT INTO mensagemEspera (destinatario, remetente, mensagens)
+    VALUES (?, ?, ?)
+    ''', (id2, id1, mensagem))
+    
+    conexao.commit()
+    conexao.close()
+
+    return True
+
+def consultar_pendentes(id):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    cursor.execute('''
+    SELECT * FROM mensagemEspera
+    WHERE destinatario = ? 
+    ''', (id,))
+    resultado = cursor.fetchall()
+    resultado = ['12' + str(i[0]) + str(i[1]) + i[2] for i in resultado]
     conexao.close()
     return resultado
 

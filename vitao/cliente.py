@@ -1,7 +1,11 @@
 import socket
 import threading
+import time
+from funcoes import *
+import time
 
-PORT = 1235
+data = int(time.time())
+PORT = 1234
 FORMATO = 'utf-8'
 SERVER = "127.0.0.1"
 ADDR = (SERVER, PORT)
@@ -19,12 +23,20 @@ def recebe_mensagens():
             msg = client.recv(1024).decode(FORMATO)
             if msg.startswith("registro") and msg != anterior:
                 mensagem = input('Digite seu nome e sobrenome: ')
-                enviar("nome " + mensagem)
+                enviar("nome" + mensagem)
             elif msg.startswith('id') and volta:
                 id = msg[2:]
                 print(f"ID recebido: {id}")
                 volta = False
                 thread2.start()
+            elif msg.startswith('05'):
+                nome = consultar_nome(int(msg[2:15]))
+                print(f'\n {nome[0][0]}: {msg[38:]}')
+                
+            elif msg.startswith('12'):
+                nome = consultar_nome(int(msg[15:28]))
+                print(f'\n {nome[0][0]}: {msg[38:]}')
+
             elif msg != anterior:
                 print(f"Mensagem recebida: {msg}")
             anterior = msg
@@ -39,19 +51,40 @@ def enviar_mensagem():
     inicio = True
     while True:
         if inicio:
-            enviar('inicia')
+            print('O que deseja?')
+            print('1 - Enviar mensagem')
+            print('2 - Ver mensagens pendentes')
+            print('3 - Criar Grupo')
+            print('3 - Ver Grupos')
+            time.sleep(0.3)
             inicio = False
         mensagem = input("o que deseja?")
-        if mensagem == '01idmanda':
-            # consultar contatos
-            enviar('01')
+        if mensagem == '1':
+            print('Contatos antigos')
+            antigas = mensagensAntigas(id)
+            print(antigas)
+            for x in antigas:
+                nome = consultar_nome(x[0])[0][0]
+                print(f'----{nome}----')
+                for y in x[1]:
+                    print(y)
+            envia = input('Enviar para quem? ')
+            oque = input('Enviar o que? ')
+            quem = consultar_pessoa(envia)
+            if quem:
+                enviar(f'05{id}{quem}{data}{oque}')
+            else:
+                enviar(f'05{id}{envia}{data}{oque}')
         elif mensagem == '2':
+            enviar(f'12{id}')
             # enviar mensagens 05
-            a = 0
+            time.sleep(0.2)
         elif mensagem == '3':
+            enviar(f'04{id}')
             # adicionar contato 10
             a = 0
         elif mensagem == '4':
+            enviar(f'05{id}')
             # ler mensagens 03
             a = 0
         # para quem deseja enviar mensagem?
@@ -67,8 +100,8 @@ def enviar_nome():
     else:
         ja_esteve = input('Você já esteve aqui antes? (s/n): ')
         if ja_esteve.lower() == 's':
-            nome = input("Digite seu Nome e Sobrenome: ")
-            enviar("02" + nome)
+            nome = input("Digite seu Nome: ")
+            enviar("03" + nome)
         else:
             print('Espero poder te atender em outro momento.')
             client.close()
