@@ -58,7 +58,7 @@ def enviar_mensagem():
             print('1 - Enviar mensagem')
             print('2 - Ver mensagens pendentes')
             print('3 - Criar Grupo')
-            print('3 - Ver Grupos')
+            print('4 - Ver Grupos')
             time.sleep(0.3)
             inicio = False
         mensagem = input("o que deseja?")
@@ -83,11 +83,6 @@ def enviar_mensagem():
             enviar(f'12{id}')
             # enviar mensagens 05
             time.sleep(0.2)
-        elif mensagem == '4':
-            enviar(f'05{id}')
-            # ler mensagens 03
-            a = 0
-        # para quem deseja enviar mensagem?
         elif mensagem == '3':
             print('a')
             membros = []
@@ -99,7 +94,17 @@ def enviar_mensagem():
                     break
             enviar(f'10{id}{data}{"".join(membros)}')
         # envie mensagem
-        
+        #  
+        # Ver Grupos
+        elif mensagem == '4':
+            grupos = ver_grupos(id)
+            if grupos:
+                print('Você está nos seguintes grupos:')
+                for grupo in grupos:
+                    print(f'Grupo ID: {grupo}')
+            else:
+                print('Você não está em nenhum grupo.')
+
 
 def enviar_nome():
     registro = input('Deseja se registrar? (s/n): ')

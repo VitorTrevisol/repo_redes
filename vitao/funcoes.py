@@ -154,3 +154,23 @@ def consultar_pendentes(id):
     conexao.close()
     return resultado
 
+def ver_grupos(id_cliente):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+
+    # Recupera os grupos associados ao cliente
+    cursor.execute('''
+    SELECT grupos FROM clientes 
+    WHERE id = ?
+    ''', (id_cliente,))
+    resultado = cursor.fetchone()
+
+    conexao.close()
+
+    if resultado and resultado[0]:
+        grupos = resultado[0].strip('[]').split(', ')
+        return grupos
+    else:
+        return []
+
+
