@@ -4,7 +4,7 @@ import time
 from funcoes import *
 
 data = int(time.time())
-PORT = 1235
+PORT = 1234
 FORMATO = 'utf-8'
 SERVER = "127.0.0.1"
 ADDR = (SERVER, PORT)

@@ -4,7 +4,7 @@ import time
 from funcoes import *
 
 SERVER_IP = "127.0.0.1"
-PORT = 1235
+PORT = 1234
 ADDR = (SERVER_IP, PORT)
 FORMATO = 'utf-8'
 
@@ -107,6 +107,7 @@ def registro(conexao, nome='', sobrenome=''):
         mensagens.append('registro')
         enviar_mensagem_individual(conexao, [])
     else:
+        nome = nome[2:]
         id_cliente = str(adicionar_pessoa(nome, sobrenome))
         mensagens.append(f'id{id_cliente}')
         conecta(conexao)
