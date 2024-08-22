@@ -92,7 +92,16 @@ def enviar_mensagem():
             # ler mensagens 03
             a = 0
         # para quem deseja enviar mensagem?
-
+        elif mensagem == '3':
+            print('a')
+            membros = []
+            for i in range(7):
+                membro = input(f'ID do membro {i+1} (ou deixe vazio para terminar): ')
+                if membro:
+                    membros.append(membro.zfill(13))  # Preenche com zeros à esquerda se necessário
+                else:
+                    break
+            enviar(f'10{id}{data}{"".join(membros)}')
         # envie mensagem
         
 
