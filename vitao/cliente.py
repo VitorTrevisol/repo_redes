@@ -29,10 +29,13 @@ def recebe_mensagens():
                 print(f"ID recebido: {id}")
                 volta = False
                 thread2.start()
+            elif msg.startswith('recebeu'):
+                id = msg[20:33]
+                print(f"usuario {consultar_nome(int(id))[0][0]} recebeu")
             elif msg.startswith('05'):
                 nome = consultar_nome(int(msg[2:15]))
                 print(f'\n {nome[0][0]}: {msg[38:]}')
-                
+                enviar(f'recebeu{msg[2:]}')
             elif msg.startswith('12'):
                 nome = consultar_nome(int(msg[15:28]))
                 print(f'\n {nome[0][0]}: {msg[38:]}')
@@ -75,6 +78,7 @@ def enviar_mensagem():
                 enviar(f'05{id}{quem}{data}{oque}')
             else:
                 enviar(f'05{id}{envia}{data}{oque}')
+            time.sleep(0.2)
         elif mensagem == '2':
             enviar(f'12{id}')
             # enviar mensagens 05

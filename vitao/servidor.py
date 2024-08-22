@@ -28,13 +28,12 @@ def enviar_mensagem_individual(conexao,msg):
     with lock:
         if msg[:2] == '05':
             conexao['conn'].send(msg.encode())
-        if msg[:2] == '12':
+        elif msg[:2] == '12':
             conexao['conn'].send(msg.encode())
-        elif mensagem_de_envio.startswith('id'):
-            online.append(mensagem_de_envio[2:])
-            mensagem_de_envio = mensagens[0]
-            conexao['conn'].send(mensagem_de_envio.encode())
-            time.sleep(0.2)
+        elif msg.startswith('recebeu'):
+            conexao['conn'].send(msg.encode())
+        print(msg)
+
             
         
         # Use uma cópia da lista ao remover itens
@@ -63,12 +62,16 @@ def handle_clientes(conn, addr):
                 id_cliente = consultar_pessoa(nome)
                 online.append(id_cliente)
                 id_cliente = 'id' + str(id_cliente)
-                print(id_cliente)
                 if id_cliente:
                     mapa_da_conexao['conn'].send(id_cliente.encode())
             elif msg.startswith("01"):
                 nome, sobrenome = msg.split(' ')
                 registro(mapa_da_conexao, nome, sobrenome)
+            elif msg.startswith("recebeu"):
+                id1 = msg[7:20]
+                for x, y in enumerate(online):
+                    if id1 == str(y):
+                        enviar_mensagem_individual(conexoes[x], msg)
             elif msg.startswith("05") and id_cliente:
                 id2 = msg[15:28]
                 if int(id2) in online:
