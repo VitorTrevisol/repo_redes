@@ -30,13 +30,21 @@ def enviar_mensagem_individual(conexao,msg):
             conexao['conn'].send(msg.encode())
         elif msg[:2] == '12':
             conexao['conn'].send(msg.encode())
-        elif msg.startswith('recebeu'):
+        elif msg.startswith('07'):
+            conexao['conn'].send(msg.encode())
+        elif msg.startswith('11'):
             conexao['conn'].send(msg.encode())
         print(msg)
 
-            
-        
-        # Use uma cópia da lista ao remover itens
+def notificar_grupo(id_grupo, timestamp, membros):
+    mensagem_notificacao = f'11{id_grupo}{timestamp}' + ''.join(membros)
+    for membro in membros:
+        if int(membro) in online:
+            for x, y in enumerate(online):
+                if str(y) == membro:
+                    enviar_mensagem_individual(conexoes[x], mensagem_notificacao)
+                    break
+
 
 def handle_clientes(conn, addr):
     print(f"[NOVA CONEXÃO] Um novo usuário se conectou pelo endereço {addr}")
@@ -77,8 +85,22 @@ def handle_clientes(conn, addr):
                             break
                 else:
                     adicionar_pendentes(msg)
+            elif msg.startswith("07"):
+                remetente = msg[2:15]
+                if int(remetente) in online:
+                    for x, y in enumerate(online):
+                        print(f'x={x}\ny={y}\nonline={online}')
+                        if str(y) == remetente:
+                            print(conexoes[x])
+                            enviar_mensagem_individual(conexoes[x], msg)
+                            break
             elif msg.startswith("10"):
-                criar_grupo(msg)  # Adiciona a chamada para criar o grupo
+                criador = msg[2:15]
+                timestamp = msg[15:25]
+                membros = [criador] + [msg[i:i+13] for i in range(25, len(msg), 13)]
+                id_grupo= criar_grupo(criador, membros)
+                notificar_grupo(id_grupo, timestamp, membros)
+
             elif msg.startswith("12"):
                 destinatario = msg[2:15]
                 resultado = consultar_pendentes(int(destinatario))
@@ -118,29 +140,6 @@ def start():
         thread = threading.Thread(target=handle_clientes, args=(conn, addr))
         thread.start()
 
-def criar_grupo(mensagem):
-    criador = mensagem[2:15]
-    timestamp = mensagem[15:25]
-    membros = [criador] + [mensagem[i:i+13] for i in range(25, len(mensagem), 13)]
-
-    # Gerar um ID único para o grupo
-    id_grupo = random.randint(10**12, 10**13 - 1)
-    
-    # Atualizar os membros no banco de dados
-    for membro in membros:
-        atualizar_clienteGrupos(membro, id_grupo)
-
-    # Notificar os membros sobre a criação do grupo
-    notificar_grupo(id_grupo, timestamp, membros)
-    
-def notificar_grupo(id_grupo, timestamp, membros):
-    mensagem_notificacao = f'11{id_grupo}{timestamp}' + ''.join(membros)
-    for membro in membros:
-        if int(membro) in online:
-            for x, y in enumerate(online):
-                if str(y) == membro:
-                    enviar_mensagem_individual(conexoes[x], mensagem_notificacao)
-                    break
 
 
 start()
