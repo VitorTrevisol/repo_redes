@@ -16,7 +16,7 @@ def recebe_mensagens():
     thread2 = threading.Thread(target=enviar_mensagem)
     volta = True
     anterior = ''
-    global id
+    global id_usuario
     while True:
         try:
             msg = client.recv(1024).decode(FORMATO)
@@ -28,8 +28,8 @@ def recebe_mensagens():
                 enviar("nome" + mensagem)
 
             elif msg.startswith('id') and volta:
-                id = msg[2:]
-                print(f"ID recebido: {id}")
+                id_usuario = msg[2:]
+                print(f"ID recebido: {id_usuario}")
                 volta = False
                 thread2.start()
 
@@ -44,7 +44,7 @@ def recebe_mensagens():
 
             elif msg.startswith('12'):
                 nome = consultar_nome(int(msg[15:28]))
-                print(f'\n {nome[0][0]}: {msg[38:]}\n')
+                print(f'\n {nome[0][0]}: {msg[28:]}\n')
 
             elif msg != anterior:
                 print(f"Mensagem recebida: {msg}")
@@ -77,23 +77,24 @@ def enviar_mensagem():
         mensagem = input("O que deseja? ")
         if mensagem == '1':
             print('Contatos antigos')
-            antigas = mensagensAntigas(id)
+            antigas = mensagens_antigas(id_usuario)
             for x in antigas:
                 nome = consultar_nome(x[0])[0][0]
                 print(f'----{nome}----')
                 for y in x[1]:
                     print(y)
             envia = input('Enviar para quem? ')
-            oque = input('Enviar o que? ')
-            quem = consultar_pessoa(envia)
-            if quem:
-                enviar(f'05{id}{quem}{data}{oque}')
+            mensagem = input('Enviar o que? ')
+            destinatario = consultar_pessoa(envia)
+            remetente= id_usuario
+            if destinatario:
+                enviar(f'05{remetente}{destinatario}{data}{mensagem}')
             else:
-                enviar(f'05{id}{envia}{data}{oque}')
+                enviar(f'05{remetente}{destinatario}{data}{mensagem}')
             time.sleep(0.2)
 
         elif mensagem == '2':
-            enviar(f'12{id}')
+            enviar(f'12{id_usuario}')
             time.sleep(0.2)
 
         elif mensagem == '3':
@@ -104,10 +105,10 @@ def enviar_mensagem():
                     membros.append(membro.zfill(13))
                 else:
                     break
-            enviar(f'10{id}{data}{"".join(membros)}')
+            enviar(f'10{id_usuario}{data}{"".join(membros)}')
 
         elif mensagem == '4':
-            grupos = ver_grupos(id)
+            grupos = ver_grupos(id_usuario)
             if grupos:
                 print('Você está nos seguintes grupos:')
                 for grupo in grupos:
