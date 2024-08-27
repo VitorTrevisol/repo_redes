@@ -25,30 +25,48 @@ def recebe_mensagens():
 
             if msg.startswith("registro") and msg != anterior:
                 mensagem = input('Digite seu nome e sobrenome: ')
-                enviar("nome" + mensagem)
+                enviar("01" + mensagem)
 
-            elif msg.startswith('id') and volta:
+            elif msg.startswith('01'):
+                print('Registro invalido')
+
+            elif msg.startswith('02'):
+                print('Usuario criado com sucesso')
                 id_usuario = msg[2:]
                 print(f"ID recebido: {id_usuario}")
+                enviar('03'+id_usuario)
+
+            elif msg.startswith('03') and volta:
+                id_usuario = msg[2:]
+                print(f'Você está conectado com id: {id_usuario}')
                 volta = False
                 thread2.start()
 
-            elif msg.startswith('recebeu'):
-                id2 = msg[20:33]
-                print(f"Usuário {consultar_nome(int(id2))[0][0]} recebeu")
-
             elif msg.startswith('05'):
                 nome = consultar_nome(int(msg[2:15]))
-                print(f'\n {nome[0][0]}: {msg[38:]}')
-                enviar(f'recebeu{msg[2:]}')
+                print('consultou')
+                print(f'\n{nome[0][0]}: {msg[38:]}')
+                enviar(f'06{msg[2:]}')
+
+            elif msg.startswith('06'):
+                nome = consultar_nome(int(msg[2:15]))
+                print(f'\n{nome[0][0]} leu sua mensagem')
+            
+            elif msg.startswith('07'):
+                print(f"Sua mensagem foi enviada")
+                enviar(msg)
+
+            elif msg.startswith('11'):
+                print('chegou aqui')
+                grupo = msg[2:15]
+                criador = msg[25:38]
+                print(f'\n{criador} adicionou você ao grupo {grupo}\n')
 
             elif msg.startswith('12'):
                 nome = consultar_nome(int(msg[15:28]))
                 print(f'\n {nome[0][0]}: {msg[28:]}\n')
+                enviar(f'06{msg[2:]}')
 
-            elif msg != anterior:
-                print(f"Mensagem recebida: {msg}")
-            anterior = msg
         except ConnectionResetError:
             print("Conexão com o servidor foi fechada.")
             break
@@ -71,18 +89,12 @@ def enviar_mensagem():
             print('2 - Ver mensagens pendentes')
             print('3 - Criar Grupo')
             print('4 - Ver Grupos')
+            print('5- Enviar mensagem em grupo')
             time.sleep(0.3)
             inicio = False
         
         mensagem = input("O que deseja? ")
         if mensagem == '1':
-            print('Contatos antigos')
-            antigas = mensagens_antigas(id_usuario)
-            for x in antigas:
-                nome = consultar_nome(x[0])[0][0]
-                print(f'----{nome}----')
-                for y in x[1]:
-                    print(y)
             envia = input('Enviar para quem? ')
             mensagem = input('Enviar o que? ')
             destinatario = consultar_pessoa(envia)
@@ -116,20 +128,30 @@ def enviar_mensagem():
             else:
                 print('Você não está em nenhum grupo.')
 
+        elif mensagem == '5':
+            grupo= input('id do grupo: ')
+            mensagem= input('digite a mensagem: ')
+            enviar(f'13{id_usuario}{grupo}{mensagem}')
+
 def enviar_nome():
     registro = input('Deseja se registrar? (s/n): ')
     if registro.lower() == 's':
         mensagem = input('Digite seu nome e sobrenome: ')
         enviar("01" + mensagem)
-    else:
+        time.sleep(0.3)
+    elif registro.lower() == 'n':
         ja_esteve = input('Você já esteve aqui antes? (s/n): ')
         if ja_esteve.lower() == 's':
-            nome = input("Digite seu Nome: ")
-            enviar("03" + nome)
-        else:
+            user_id = input("Digite seu user_id: ")
+            enviar("03" + user_id)
+        elif ja_esteve.lower() == 'n':
             print('Espero poder te atender em outro momento.')
             client.close()
             return
+        else:
+            print('Resposta inválida')
+    else:
+        print('Resposta inválida')
 
     # Começa a thread para enviar mensagens após o registro ou conexão
     

@@ -63,69 +63,18 @@ def apagar_mensagem_do_banco(destinatario):
     conexao.close()
     print('passou aqui')
 
-
-def grupos(id):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute('''
-    SELECT * FROM clientes
-    WHERE id = ? 
-    ''', (id,))
-    idGrupos = cursor.fetchall()
-    idGrupos = idGrupos[3].strip('[]').split(', ')
-    listaGrupos = []
-    for x in idGrupos:
-        cursor.execute('''
-        SELECT * FROM grupos
-        WHERE id = ? 
-        ''', (int(x),))
-        resultado = cursor.fetchall()
-        listaGrupos.append(resultado)
-    conexao.close()
-    return resultado
-
-def atualizar_clienteGrupos(id_cliente, id_grupo):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-
-    # Recupera os grupos existentes do cliente
-    cursor.execute('''
-    SELECT grupos FROM clientes
-    WHERE id = ? 
-    ''', (id_cliente,))
-    resultado = cursor.fetchone()
-
-    if resultado and resultado[0]:
-        grupos = resultado[0].strip('[]').split(', ')
-    else:
-        grupos = []
-
-    # Adiciona o novo grupo à lista de grupos do cliente
-    grupos.append(str(id_grupo))
-    grupos_str = '[' + ', '.join(grupos) + ']'
-
-    # Atualiza o banco de dados com a nova lista de grupos
-    cursor.execute('''
-    UPDATE clientes
-    SET grupos = ?
-    WHERE id = ?
-    ''', (grupos_str, id_cliente))
-
-    conexao.commit()
-    conexao.close()
-
-
 def adicionar_pendentes(mensagem):
     id_remetente = mensagem[2:15]
     id_destinatario = mensagem [15:28]
     mensagem_pendente = mensagem[38:]
     conexao = conectar_banco()
     cursor = conexao.cursor()
+    print(f'mensagem pendente= {mensagem}')
     
     cursor.execute('''
     INSERT INTO mensagemEspera (destinatario, remetente, mensagens)
     VALUES (?, ?, ?)
-    ''', (id_remetente, id_destinatario, mensagem_pendente))
+    ''', (id_destinatario, id_remetente, mensagem_pendente))
     
     conexao.commit()
     conexao.close()
@@ -154,13 +103,12 @@ def consultar_pendentes(destinatario):
     conexao.close()
     return resultado
 
-<<<<<<< HEAD
 def criar_grupo(criador, membros):
     conexao = conectar_banco()
     cursor = conexao.cursor()
     
     cursor.execute('''
-    INSERT INTO grupos (id_criador, membros)
+    INSERT INTO grupos (nome, mensagens)
     VALUES (?, ?)
     ''', (criador, str(membros)))
     
@@ -210,8 +158,6 @@ def atualizar_clienteGrupos(membro, id_grupo):
     conexao.commit()
     conexao.close()
 
-=======
->>>>>>> parent of 419b663 (criando grupo e notificando participantes)
 def ver_grupos(id_cliente):
     conexao = conectar_banco()
     cursor = conexao.cursor()
@@ -231,39 +177,5 @@ def ver_grupos(id_cliente):
     else:
         return []
     
-def atualizar_clienteGrupos(id_cliente, id_grupo):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
 
-    # Recupera os grupos existentes do cliente
-    cursor.execute('''
-    SELECT grupos FROM clientes
-    WHERE id = ? 
-    ''', (id_cliente,))
-    resultado = cursor.fetchone()
-    
-    if resultado:
-        grupos = resultado[0]
-        if grupos:
-            grupos = grupos.strip('[]').split(', ')
-        else:
-            grupos = []
-        grupos.append(str(id_grupo))
-        grupos = str(grupos)
-        
-        cursor.execute('''
-        UPDATE clientes
-        SET grupos = ?
-        WHERE id = ?
-        ''', (grupos, id_cliente))
-    else:
-        # Se o cliente não tem nenhum grupo, cria uma nova entrada
-        cursor.execute('''
-        UPDATE clientes
-        SET grupos = ?
-        WHERE id = ?
-        ''', (str([id_grupo]), id_cliente))
-
-    conexao.commit()
-    conexao.close()
 
