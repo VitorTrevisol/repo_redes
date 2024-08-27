@@ -179,3 +179,36 @@ def ver_grupos(id_cliente):
     
 
 
+def ver_membros(id_grupo):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+
+    # Recupera os grupos associados ao cliente
+    cursor.execute('''
+    SELECT membros FROM grupos 
+    WHERE id_grupo = ?
+    ''', (id_grupo,))
+    resultado = cursor.fetchone()
+    conexao.close()
+    membros = resultado[0]
+    membros = membros.strip('[]').split(', ')
+    resultado = []
+    for x in membros:
+        resultado.append(int(x.strip("'")))
+    return resultado
+
+def vergrupo(id_grupo):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+
+    # Recupera os grupos associados ao cliente
+    cursor.execute('''
+    SELECT membros FROM grupos 
+    WHERE id_grupo = ?
+    ''', (id_grupo,))
+    resultado = cursor.fetchone()
+    if resultado:
+        return True
+    else:
+        return False
+
