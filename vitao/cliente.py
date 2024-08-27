@@ -4,7 +4,7 @@ import time
 from funcoes import *
 
 data = int(time.time())
-PORT = 1234
+PORT = 1235
 FORMATO = 'utf-8'
 SERVER = "127.0.0.1"
 ADDR = (SERVER, PORT)
@@ -90,7 +90,11 @@ def enviar_mensagem():
                     print(y)
             envia = input('Enviar para quem? ')
             mensagem = input('Enviar o que? ')
-            destinatario = consultar_pessoa(envia)
+            try:
+                envia = int(envia)
+                destinatario = str(envia)
+            except:
+                destinatario = consultar_pessoa(str(envia))
             remetente= id_usuario
             if destinatario:
                 enviar(f'05{remetente}{destinatario}{data}{mensagem}')

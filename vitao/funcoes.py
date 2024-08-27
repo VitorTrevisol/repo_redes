@@ -73,7 +73,7 @@ def adicionar_pendentes(mensagem):
     cursor.execute('''
     INSERT INTO mensagemEspera (destinatario, remetente, mensagens)
     VALUES (?, ?, ?)
-    ''', (id_destinatario, id_remetente, mensagem_pendente))
+    ''', (id_remetente, id_destinatario, mensagem_pendente))
     
     conexao.commit()
     conexao.close()
@@ -107,7 +107,7 @@ def criar_grupo(criador, membros):
     cursor = conexao.cursor()
     
     cursor.execute('''
-    INSERT INTO grupos (nome, mensagens)
+    INSERT INTO grupos (id_criador, membros)
     VALUES (?, ?)
     ''', (criador, str(membros)))
     
