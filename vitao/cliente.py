@@ -33,19 +33,14 @@ def recebe_mensagens():
                 volta = False
                 thread2.start()
 
-            elif msg.startswith('07'):
-                id2 = msg[15:28]
+            elif msg.startswith('recebeu'):
+                id2 = msg[20:33]
                 print(f"Usuário {consultar_nome(int(id2))[0][0]} recebeu")
 
             elif msg.startswith('05'):
                 nome = consultar_nome(int(msg[2:15]))
-                print(f'\n{nome[0][0]}: {msg[38:]}')
-                enviar(f'07{msg[2:]}')
-
-            elif msg.startswith('11'):
-                grupo = msg[2:15]
-                criador = msg[25:38]
-                print(f'\n{criador} adicionou você ao grupo {grupo}\n')
+                print(f'\n {nome[0][0]}: {msg[38:]}')
+                enviar(f'recebeu{msg[2:]}')
 
             elif msg.startswith('12'):
                 nome = consultar_nome(int(msg[15:28]))
