@@ -4,7 +4,7 @@ import time
 from funcoes import *
 
 SERVER_IP = "127.0.0.1"
-PORT = 1234
+PORT = 1235
 ADDR = (SERVER_IP, PORT)
 FORMATO = 'utf-8'
 
@@ -70,13 +70,28 @@ def handle_clientes(conn, addr):
                 registro(mapa_da_conexao, nome, sobrenome)
             elif msg.startswith("05") and id_cliente:
                 destinatario = msg[15:28]
-                if int(destinatario) in online:
-                    for x, y in enumerate(online):
-                        if str(y) == destinatario:
-                            enviar_mensagem_individual(conexoes[x], msg)
-                            break
+                print(msg)
+                grupo = vergrupo(int(destinatario))
+                print(grupo)
+                if grupo:
+                    membros = ver_membros(int(destinatario))
+                    for membro in membros:
+                        if int(membro) in online:
+                            for x, y in enumerate(online):
+                                if str(y) == membro:
+                                    print(y,membro)
+                                    enviar_mensagem_individual(conexoes[x], msg)
+                                    break
+                        else:
+                            adicionar_pendentes(msg)
                 else:
-                    adicionar_pendentes(msg)
+                    if int(destinatario) in online:
+                        for x, y in enumerate(online):
+                            if str(y) == destinatario:
+                                enviar_mensagem_individual(conexoes[x], msg)
+                                break
+                    else:
+                        adicionar_pendentes(msg)
             elif msg.startswith("10"):
                 criar_grupo(msg)  # Adiciona a chamada para criar o grupo
             elif msg.startswith("12"):
